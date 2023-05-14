@@ -32,3 +32,12 @@ $ docker-compose run web ./manage.py createsuperuser
 `ALLOWED_HOSTS` -- настройка Django со списком разрешённых адресов. Если запрос прилетит на другой адрес, то сайт ответит ошибкой 400. Можно перечислить несколько адресов через запятую, например `127.0.0.1,192.168.0.1,site.test`. [Документация Django](https://docs.djangoproject.com/en/3.2/ref/settings/#allowed-hosts).
 
 `DATABASE_URL` -- адрес для подключения к базе данных PostgreSQL. Другие СУБД сайт не поддерживает. [Формат записи](https://github.com/jacobian/dj-database-url#url-schema).
+
+## Kubernetes 
+
+Для того, чтобы сайт был доступен необходимо настроить локальный DNS. Если вы работаете на Windows, то путь к нужному файлу будет `Windows\System32\drivers\etc\hosts`. Добивим строку с `IP` миникуба в файл (в моём случае IP будет такой - 192.168.59.105):
+```
+192.168.59.105 star-burger.test
+```
+
+Сайт будет доступен по адресу [star-burger.test](http://star-burger.test)
