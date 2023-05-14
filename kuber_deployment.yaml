@@ -18,6 +18,8 @@ spec:
         - name: django-container
           image: django_app
           imagePullPolicy: Never
+          envFrom:
+            - configMapRef:
+                name: django-config
           ports:
             - containerPort: 80
-          
