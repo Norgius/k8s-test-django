@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: django-config-v1
 data:
-  SECRET_KEY: "REPLACE_ME"
-  DATABASE_URL: "postgres://testapp:testapp@192.168.59.1:5432/testapp"
-  ALLOWED_HOSTS: "*"
-  DEBUG: "False"
+  SECRET_KEY: ""
+  DATABASE_URL: ""
+  ALLOWED_HOSTS: ""
+  DEBUG: ""
