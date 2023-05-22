@@ -35,6 +35,79 @@ $ docker-compose run web ./manage.py createsuperuser
 
 ## Kubernetes 
 
+Установим `minikube` и `kubectl`. Для этого перейдите по ссылкам и скачайте их:
+[kubectl](https://kubernetes.io/ru/docs/tasks/tools/install-kubectl/) и [minikube](https://minikube.sigs.k8s.io/docs/start/).
+
+Если вы работает на `Windows`, то вам необходимо прописать путь до папки с программами `minikube` и `kubectl` в переменной среде `Path`.
+
+Также не забудьте установить [VirtualBox](https://www.virtualbox.org/).
+
+Запустим сам `minikube` (настройки `--cpus`, `--memory` и `--disk-size` опциональны):
+```
+minikube start --driver=virtualbox --no-vtx-check --cpus=3 --memory=4gb --disk-size=10gb
+```
+
+Установите `helm`:
+```
+choco install kubernetes-helm
+```
+Установите `PostgreSQL` с помощью `helm` (`my-release` имя вашей `postgresql`):
+```
+helm install my-release oci://registry-1.docker.io/bitnamicharts/postgresql
+```
+После установки вам будут представлены команды для взаимодействия с `postgresql`. 
+
+__Внимание!!!__ Команды ниже могут отличаться от тех, которые вы получите после установки `postgresql`.
+
+Получите пароль вашей `postgresql` командой:
+```
+kubectl get secret --namespace default my-release-postgresql -o jsonpath="{.data.postgres-password}" | base64 -d
+```
+Второй командой вы сможете подключиться к `postgresql` (вместо `YOUR_PASSWORD` подставьте ваш полученный пароль):
+```
+kubectl run my-release-postgresql-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:15.3.0-debian-11-r4 --env="PGPASSWORD=YOUR_PASSWORD" --command -- psql --host my-release-postgresql -U postgres -d postgres -p 5432
+```
+Создайте базу данных и пользователя:
+```
+CREATE DATABASE kuber_db;
+CREATE USER db_user WITH PASSWORD 'db_password';
+GRANT ALL PRIVILEGES ON DATABASE kuber_db TO db_user;
+```
+
+Перейдите в директорию `kuber`.
+Заполните файл `kuber_configmap.yaml`. О переменных окружения можно почитать в `README` выше. Для `DATABASE_URL` значение будет вида:
+```
+"postgres://db_user:db_password@my-release-postgresql:5432/kuber_db"
+```
+`my-release-postgresql` - это сервис, который создал `helm`, именно к нему мы и будем подключаться.
+
+Теперь запустим все `yaml-файлы` по очереди:
+```
+kubectl apply -f kuber_configmap.yaml
+kubectl apply -f kuber_deployment.yaml
+kubectl apply -f kuber_service.yaml
+kubectl apply -f kuber_ingress.yaml
+```
+Запустим `jobs`:
+```
+kubectl apply -f kuber_migrate.yaml
+kubectl apply -f kuber_clearsessions.yaml
+```
+Если миграции не применяются, а внутри самого пода при применении позникают ошибки вида:
+```
+LINE 1: CREATE TABLE "django_migrations" ("id" serial NOT NULL PRIMA...
+```
+Тогда вам необходимо поключиться к вашей созданной БД:
+```
+kubectl run my-release-postgresql-client --rm --tty -i --restart='Never' --namespace default --image docker.io/bitnami/postgresql:15.3.0-debian-11-r4 --env="PGPASSWORD=YOUR_PASSWORD" --command -- psql --host my-release-postgresql -U postgres -d <ВАША_БАЗА_ДАННЫХ> -p 5432
+```
+И применить команды:
+```
+GRANT ALL ON SCHEMA public TO <ВАШ_USER>;
+GRANT ALL ON SCHEMA public TO public;
+```
+После этого снова примените `job` с миграцией.
+
 Для того, чтобы сайт был доступен необходимо настроить локальный DNS. Если вы работаете на Windows, то путь к нужному файлу будет `Windows\System32\drivers\etc\hosts`. Добивим строку с `IP` миникуба в файл (в моём случае IP будет такой - 192.168.59.105):
 ```
 192.168.59.105 star-burger.test
