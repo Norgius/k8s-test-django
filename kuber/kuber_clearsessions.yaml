@@ -17,7 +17,9 @@ spec:
             imagePullPolicy: IfNotPresent
             envFrom:
               - configMapRef:
-                  name: django-config-v1
+                  name: django-config-v16
+              - secretRef:
+                  name: django-secrets-v1
             command:
               - python
               - manage.py
