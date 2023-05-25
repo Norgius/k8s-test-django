@@ -75,7 +75,9 @@ GRANT ALL PRIVILEGES ON DATABASE kuber_db TO db_user;
 ```
 
 Перейдите в директорию `kuber`.
-Заполните файл `kuber_configmap.yaml`. О переменных окружения можно почитать в `README` выше. Для `DATABASE_URL` значение будет вида:
+Заполните файл `kuber_configmap.yaml`. О переменных окружения можно почитать в `README` выше.
+
+Также заполните `kuber_secrets.yaml`. Для `DATABASE_URL` значение будет вида:
 ```
 "postgres://db_user:db_password@my-release-postgresql:5432/kuber_db"
 ```
